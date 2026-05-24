@@ -487,7 +487,7 @@ let bombingEvent=null;
 let tobaccoPuddles=[],trailParts=[],vedTrailTickTimer=0;
 let shauryaList=[];
 let currentDifficulty='sweet',selectedDifficulty=null,difficultyLocked=false,aaronChins=null,aaronChinsHired=false,aaronChinsSeen=false,aaronChinsPending=false;
-let onlineMode=false,onlineConnected=false,onlineRole=null,onlineRoomCode='',onlinePeerReady=false,onlineSelectedDifficulty=null,onlineSocket=null,onlineChatOpen=false,onlinePauseMine=0,onlinePausePeer=0,onlineDead=false,onlinePeerDead=false,onlinePeerState=null,onlinePeerDraw=null,onlineSyncTick=0,onlineReviveTicks=0,onlineReviving=false,onlineProceedMine=false,onlineProceedPeer=false,onlineProceedContext='',onlineVisualBullets=[],onlinePeerEffects={diddy:0,dash:0,shield:0,laser:0,laserX:0,laserY:0},onlineWorldState=null,onlineWorldTick=0,onlinePeerDamageCD=0,onlineSendQueue=[],onlineConnecting=false,onlineDamageTarget=null,onlineStickyStatus='',onlineStickyStatusColor='#ffd700';
+let onlineMode=false,onlineConnected=false,onlineRole=null,onlineRoomCode='',onlinePeerReady=false,onlineSelectedDifficulty=null,onlineSocket=null,onlineChatOpen=false,onlinePauseMine=0,onlinePausePeer=0,onlineDead=false,onlinePeerDead=false,onlinePeerState=null,onlinePeerDraw=null,onlineSyncTick=0,onlineReviveTicks=0,onlineReviving=false,onlineProceedMine=false,onlineProceedPeer=false,onlineProceedContext='',onlineVisualBullets=[],onlinePeerEffects={diddy:0,dash:0,shield:0,laser:0,laserX:0,laserY:0},onlineWorldState=null,onlineWorldTick=0,onlinePeerDamageCD=0,onlineSendQueue=[],onlineConnecting=false,onlineDamageTarget=null,onlineStickyStatus='',onlineStickyStatusColor='#ffd700',onlineHadPeerInRoom=false;
 let ronaldBoss=null,colonelBoss=null,saltKing=null,finalBoss=null;
 // object arrays
 let enemies=[],minibosses=[],bullets=[],eProjList=[],particles=[],shockwaves=[],items=[],popups=[],skyscrapers=[],pools=[];
@@ -3468,17 +3468,17 @@ function onlineConnect(){
   onlineConnecting=true;onlineSetRoomButtons(true);onlineSetStatus('Connecting to room server...','#ffd700');
   try{onlineSocket=new WebSocket(url);}catch(e){onlineConnecting=false;onlineSetRoomButtons(false);onlineSetStatus('Could not connect to server.','#ff4466');return false;}
   onlineSocket.onopen=()=>{onlineConnected=true;onlineConnecting=false;onlineSetRoomButtons(false);onlineSetStatus('Connected. Sending request...','#00ff88');onlineFlushQueue();};
-  onlineSocket.onclose=()=>{onlineConnected=false;onlineConnecting=false;onlinePeerReady=false;onlineSetRoomButtons(false);onlineSendQueue=[];onlineSetStatus('Disconnected from server.','#ff4466');if(onlineMode)onlineShowNotice('Connection lost.');};
+  onlineSocket.onclose=()=>{onlineConnected=false;onlineConnecting=false;onlinePeerReady=false;onlineSetRoomButtons(false);onlineSendQueue=[];if(onlineHadPeerInRoom&&onlineRole==='guest'){onlineStickyStatus='Disconnected from server.';onlineStickyStatusColor='#ff4466';onlineSetStatus(onlineStickyStatus,onlineStickyStatusColor);}else{onlineStickyStatus='';onlineSetStatus('Create or join a room from this server.','#ffd700');}if(onlineMode)onlineShowNotice('Connection lost.');};
   onlineSocket.onerror=()=>{onlineConnecting=false;onlineSetRoomButtons(false);onlineSetStatus('Could not reach the multiplayer server. Check the URL and Replit is running.','#ff4466');};
   onlineSocket.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch(_){return;}onlineHandleMessage(m);};
   return true;
 }
 function onlineHandleMessage(m){
-  if(m.type==='roomCreated'){onlineStickyStatus='';onlineSetRoomButtons(false);onlineRole='host';onlineRoomCode=m.code;document.getElementById('online-room-code').innerText=m.code;document.getElementById('online-room').style.display='block';document.getElementById('online-host-controls').style.display='block';document.getElementById('online-role-line').innerText='You are Player 1. Waiting for Player 2...';onlineSetStatus('Room created. Share the code: '+m.code,'#00ff88');}
-  else if(m.type==='joined'){onlineStickyStatus='';onlineSetRoomButtons(false);onlineRole='guest';onlineRoomCode=m.code;document.getElementById('online-room-code').innerText=m.code;document.getElementById('online-room').style.display='block';document.getElementById('online-host-controls').style.display='none';document.getElementById('online-role-line').innerText='You are Player 2. Waiting for host to start.';onlineSetStatus('Joined room '+m.code+'.','#00ff88');}
-  else if(m.type==='peerJoined'){onlinePeerReady=true;document.getElementById('online-role-line').innerText='Player 2 joined. Choose difficulty and start.';onlineSetStatus('Player 2 connected.','#00ff88');}
-  else if(m.type==='peerLeft'){onlinePeerReady=false;onlineShowNotice('Player 2 disconnected. Room code: '+onlineRoomCode);onlineSetStatus('Player 2 disconnected. Room code: '+onlineRoomCode,'#ff4466');}
-  else if(m.type==='hostLeft'){onlinePeerReady=false;onlineConnected=false;onlineRoomCode='';onlineRole=null;onlineStickyStatus='Disconnected from server.';onlineStickyStatusColor='#ff4466';onlineSetStatus(onlineStickyStatus,onlineStickyStatusColor);onlineShowNotice('Player 1 disconnected. Room closed.');returnToMainMenu();}
+  if(m.type==='roomCreated'){onlineStickyStatus='';onlineHadPeerInRoom=false;onlineSetRoomButtons(false);onlineRole='host';onlineRoomCode=m.code;document.getElementById('online-room-code').innerText=m.code;document.getElementById('online-room').style.display='block';document.getElementById('online-host-controls').style.display='block';document.getElementById('online-role-line').innerText='You are Player 1. Waiting for Player 2...';onlineSetStatus('Room created. Share the code: '+m.code,'#00ff88');}
+  else if(m.type==='joined'){onlineStickyStatus='';onlineHadPeerInRoom=true;onlineSetRoomButtons(false);onlineRole='guest';onlineRoomCode=m.code;document.getElementById('online-room-code').innerText=m.code;document.getElementById('online-room').style.display='block';document.getElementById('online-host-controls').style.display='none';document.getElementById('online-role-line').innerText='You are Player 2. Waiting for host to start.';onlineSetStatus('Joined room '+m.code+'.','#00ff88');}
+  else if(m.type==='peerJoined'){onlinePeerReady=true;onlineHadPeerInRoom=true;document.getElementById('online-role-line').innerText='Player 2 joined. Choose difficulty and start.';onlineSetStatus('Player 2 connected.','#00ff88');}
+  else if(m.type==='peerLeft'){onlinePeerReady=false;onlineHadPeerInRoom=false;onlineShowNotice('Player 2 disconnected. Room code: '+onlineRoomCode);onlineSetStatus('Player 2 disconnected. Room code: '+onlineRoomCode,'#ff4466');}
+  else if(m.type==='hostLeft'){let showDisc=onlineHadPeerInRoom&&onlineRole==='guest';onlinePeerReady=false;onlineConnected=false;onlineRoomCode='';onlineRole=null;onlineHadPeerInRoom=false;if(showDisc){onlineStickyStatus='Disconnected from server.';onlineStickyStatusColor='#ff4466';onlineSetStatus(onlineStickyStatus,onlineStickyStatusColor);}else{onlineStickyStatus='';onlineSetStatus('Create or join a room from this server.','#ffd700');}onlineShowNotice('Player 1 disconnected. Room closed.');returnToMainMenu();}
   else if(m.type==='quit'){onlineShowNotice((m.from==='P1'?'Player 1':'Player 2')+' quit the run.');returnToMainMenu();}
   else if(m.type==='chat'){onlineAppendChat(m.from,m.text);}
   else if(m.type==='state'){onlinePeerState=m;onlinePeerDead=!!m.dead;if(onlineDead&&onlinePeerDead)endGame(false);}
@@ -3780,10 +3780,11 @@ function drawOnlinePlayerTag(){if(!onlineMode||!player)return;ctx.save();if(onli
 document.getElementById('online-main-btn').addEventListener('click',onlineOpenPanel);
 document.getElementById('online-close').addEventListener('click',()=>{document.getElementById('online-panel').style.display='none';});
 document.getElementById('online-create-btn').addEventListener('click',()=>{
-  onlineSendQueue=[];onlineSetRoomButtons(true);onlineSetStatus('Creating room...','#ffd700');
+  onlineStickyStatus='';onlineHadPeerInRoom=false;onlineSendQueue=[];onlineSetRoomButtons(true);onlineSetStatus('Creating room...','#ffd700');
   if(onlineConnect())onlineSend('create');
 });
 document.getElementById('online-join-btn').addEventListener('click',()=>{
+  onlineStickyStatus='';
   let code=document.getElementById('online-join-code').value.trim().toUpperCase().replace(/[^0-9A-Z]/g,'');
   document.getElementById('online-join-code').value=code;
   if(!code){onlineSetStatus('Enter a room code.','#ff4466');return;}
